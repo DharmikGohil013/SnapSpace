@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 using System.Collections;
 using UnityEngine.Networking;
+using UnityEngine.SceneManagement;
 
 public class AuthManager : MonoBehaviour
 {
@@ -13,6 +14,21 @@ public class AuthManager : MonoBehaviour
         public string email;
         public string password;
     }
+    [System.Serializable]
+    public class VerifyOtpRequest
+    {
+        public string name;
+        public string email;
+        public string password;
+        public string otp;
+    }
+    [System.Serializable]
+    public class LoginResponse
+    {
+        public bool success;
+        public string token;
+    }
+
 
     [Header("Panels")]
     public GameObject signupPanel, otpPanel, loginPanel, forgetPanel;
@@ -34,8 +50,17 @@ public class AuthManager : MonoBehaviour
 
     void Start()
     {
-        ShowPanel(signupPanel);
-        ClearAllErrors();
+        string token = PlayerPrefs.GetString("snapspace_token", "");
+        if (!string.IsNullOrEmpty(token))
+        {
+            Debug.Log("🔐 Token found, auto-logging in...");
+            SceneManager.LoadScene(1);
+        }
+        else
+        {
+            ShowPanel(signupPanel);
+            ClearAllErrors();
+        }
     }
 
     void ShowPanel(GameObject panelToShow)
@@ -46,6 +71,8 @@ public class AuthManager : MonoBehaviour
         forgetPanel.SetActive(false);
         panelToShow.SetActive(true);
         ClearAllErrors();
+
+        ShowToast("Panel: " + panelToShow.name);
     }
 
     void ClearAllErrors()
@@ -82,6 +109,12 @@ public class AuthManager : MonoBehaviour
         cachedSignupPassword = signupPassword.text;
 
         StartCoroutine(RequestOtpCoroutine());
+    }
+    public void Logout()
+    {
+        PlayerPrefs.DeleteKey("snapspace_token");
+        PlayerPrefs.Save();
+        SceneManager.LoadScene(0); // back to login/signup scene
     }
 
     IEnumerator RequestOtpCoroutine()
@@ -125,24 +158,34 @@ public class AuthManager : MonoBehaviour
 
     public void OnClickVerifyOtp()
     {
+        Debug.Log("👆 Verify OTP button clicked!");
+
         if (string.IsNullOrEmpty(signupOtp.text))
         {
             errorTextOtp.text = "Enter the OTP.";
             return;
         }
+
         StartCoroutine(VerifyOtpCoroutine());
     }
 
+
     IEnumerator VerifyOtpCoroutine()
     {
+        Debug.Log("🔄 Sending OTP verification to server...");
+
         string url = BASE_URL + "/auth/user/verify-otp";
-        var json = JsonUtility.ToJson(new
+
+        var data = new VerifyOtpRequest
         {
             name = cachedSignupName,
             email = cachedSignupEmail,
             password = cachedSignupPassword,
             otp = signupOtp.text
-        });
+        };
+
+        string json = JsonUtility.ToJson(data);
+        Debug.Log("📦 JSON (verify): " + json);
 
         UnityWebRequest req = new UnityWebRequest(url, "POST");
         byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(json);
@@ -152,7 +195,9 @@ public class AuthManager : MonoBehaviour
 
         yield return req.SendWebRequest();
 
-        if (req.result == UnityWebRequest.Result.Success)
+        Debug.Log("📥 Response Code (verify): " + req.responseCode);
+
+        if (req.result == UnityWebRequest.Result.Success || (int)req.responseCode == 200)
         {
             ShowToast("Account created!");
             ShowPanel(loginPanel);
@@ -160,8 +205,11 @@ public class AuthManager : MonoBehaviour
         else
         {
             errorTextOtp.text = "Invalid or expired OTP.";
+            Debug.LogWarning("❌ Verify OTP failed: " + req.error);
+            Debug.LogError("📝 Server Response: " + req.downloadHandler.text);
         }
     }
+
 
     public void OnClickLogin()
     {
@@ -192,14 +240,29 @@ public class AuthManager : MonoBehaviour
 
         if (req.result == UnityWebRequest.Result.Success)
         {
+            // Parse token from response
+            string jsonResponse = req.downloadHandler.text;
+            LoginResponse parsed = JsonUtility.FromJson<LoginResponse>(jsonResponse);
+
+            PlayerPrefs.SetString("snapspace_token", parsed.token);
+            PlayerPrefs.Save();
+
             ShowToast("Login successful!");
-            // TODO: Load Home scene
+            yield return new WaitForSeconds(1f);
+            SceneManager.LoadScene(1);
         }
+
+
         else
         {
             errorTextLogin.text = "Invalid email or password.";
         }
     }
+    public void GoToLoginPanel()
+    {
+        ShowPanel(loginPanel);
+    }
+
 
     public void GoToSignupPanel() => ShowPanel(signupPanel);
     public void GoToForgetPanel() => ShowPanel(forgetPanel);
