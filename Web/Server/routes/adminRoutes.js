@@ -7,7 +7,7 @@ const {
   getAllUsers,
   deleteTile,
   updateTile,
-} = require('../controllers/adminController');
+} = require('../controllers/authController');
 
 const { protect, isAdmin } = require('../middlewares/auth');
 

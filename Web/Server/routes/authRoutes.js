@@ -7,10 +7,12 @@ const {
   loginUser,
   registerAdmin,
   loginAdmin,
-} = require('../controllers/authController');
+} = require('../controllers/adminController');
+
 
 // User auth
-router.post('/user/register', registerUser);
+router.post('/user/register', registerUser); // <--- line 13 of authRoutes.js
+
 router.post('/user/login', loginUser);
 
 // Admin auth
