@@ -10,6 +10,7 @@ const {
 } = require('../controllers/authController');
 
 const { protect, isAdmin } = require('../middlewares/auth');
+const { requestOtp, verifyOtpAndRegister } = require('../controllers/authController');
 
 // Admin-only routes
 router.post('/tiles', protect, isAdmin, createTile);
