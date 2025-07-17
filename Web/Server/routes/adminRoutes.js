@@ -6,6 +6,9 @@ const {
   getAllTilesAdmin,
   toggleFeatured,
   getAllUsers,
+  createUser,
+  updateUser,
+  deleteUser,
   updateUserRole,
   getDashboardStats
 } = require('../controllers/adminController');
@@ -30,6 +33,9 @@ router.patch('/tiles/:id/featured', toggleFeatured);
 
 // User management
 router.get('/users', getAllUsers);
+router.post('/users', createUser);
+router.put('/users/:id', updateUser);
+router.delete('/users/:id', deleteUser);
 router.patch('/users/:id/role', updateUserRole);
 
 module.exports = router;
