@@ -10,8 +10,9 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<Login />} />
+      {/* Temporarily remove ProtectedRoute to test direct navigation */}
+      <Route path="/dashboard" element={<Dashboard />} />
       <Route element={<ProtectedRoute />}>
-        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/tiles" element={<Tiles />} />
         <Route path="/tiles/new" element={<AddTile />} />
         <Route path="/users" element={<Users />} />

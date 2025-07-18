@@ -1,87 +1,164 @@
-import React, { useState } from 'react';
-import { loginAdmin, checkServerHealth } from '../api/authApi';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Toast from '../components/Toast';
+import { authApi } from '../utils/apiConfig';
+import '../styles/glassmorphism-login.css';
 
 const Login = () => {
   const [form, setForm] = useState({ email: '', password: '' });
-  const [toast, setToast] = useState(null);
+  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  // Clean up any media elements before component unmounts or navigation
+  useEffect(() => {
+    return () => {
+      // Cleanup function to pause any playing media
+      const mediaElements = document.querySelectorAll('video, audio');
+      mediaElements.forEach(element => {
+        if (!element.paused) {
+          element.pause();
+        }
+      });
+    };
+  }, []);
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+    setError(''); // Clear error when user types
+  };
+
+  const cleanupMediaAndNavigate = async () => {
+    try {
+      // Pause any playing media elements
+      const mediaElements = document.querySelectorAll('video, audio');
+      const pausePromises = Array.from(mediaElements).map(element => {
+        if (!element.paused) {
+          return new Promise((resolve) => {
+            element.pause();
+            // Wait a bit for pause to complete
+            setTimeout(resolve, 100);
+          });
+        }
+        return Promise.resolve();
+      });
+
+      await Promise.all(pausePromises);
+      
+      // Add a small delay to ensure media is properly paused
+      setTimeout(() => {
+        console.log("Redirecting to dashboard...");
+        navigate('/dashboard');
+      }, 150);
+      
+    } catch (mediaError) {
+      console.warn('Media cleanup error:', mediaError);
+      // Still navigate even if media cleanup fails
+      console.log("Redirecting to dashboard...");
+      navigate('/dashboard');
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setError('');
     
     try {
-      // Check server health first
-      const isServerHealthy = await checkServerHealth();
-      if (!isServerHealthy) {
-        setToast('Server is currently unavailable. Please try again later.');
-        setIsLoading(false);
-        return;
-      }
+      console.log('Starting login process...');
+      
+      // Use the environment-aware API configuration
+      const data = await authApi.adminLogin({
+        email: form.email,
+        password: form.password
+      });
 
-      const res = await loginAdmin(form);
-      localStorage.setItem('snapspace_token', res.data.token);
-      setToast('Login successful!');
-      setTimeout(() => navigate('/dashboard'), 1000);
+      console.log('Login successful, received data:', data);
+
+      // Store token in localStorage with the correct key
+      localStorage.setItem('snapspace_token', data.token);
+      console.log('Token stored in localStorage');
+      
+      // Verify token was stored
+      const storedToken = localStorage.getItem('snapspace_token');
+      if (storedToken) {
+        console.log('Token verification successful');
+        
+        // Clean up media and navigate
+        await cleanupMediaAndNavigate();
+      } else {
+        throw new Error('Failed to store token in localStorage');
+      }
+      
     } catch (err) {
       console.error('Login error:', err);
       
+      // Enhanced error handling
       let errorMessage = 'Login failed. ';
       
-      if (err.code === 'ECONNABORTED') {
-        errorMessage += 'Request timeout. Please check your connection and try again.';
-      } else if (err.response) {
-        errorMessage += err.response.data?.message || `Server error: ${err.response.status}`;
-      } else if (err.request) {
-        errorMessage += 'Network error. Please check your internet connection and try again.';
+      if (err.message.includes('NetworkError') || err.message.includes('fetch')) {
+        errorMessage += 'Network error. Please check your connection and try again.';
+      } else if (err.message.includes('CORS')) {
+        errorMessage += 'Server configuration issue. Please contact support.';
+      } else if (err.message.includes('timeout')) {
+        errorMessage += 'Request timeout. The server may be slow, please try again.';
       } else {
-        errorMessage += err.message || 'Unknown error occurred.';
+        errorMessage += err.message || 'Please check your credentials and try again.';
       }
       
-      setToast(errorMessage);
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
-      <form onSubmit={handleSubmit} className="card w-full max-w-sm flex flex-col gap-4">
-        <h2 className="text-2xl font-bold text-center mb-2">Admin Login</h2>
-        <input 
-          name="email" 
-          type="email" 
-          value={form.email} 
-          onChange={handleChange} 
-          placeholder="Admin Email" 
-          className="p-2 border rounded" 
-          required 
-          disabled={isLoading}
-        />
-        <input 
-          name="password" 
-          type="password" 
-          value={form.password} 
-          onChange={handleChange} 
-          placeholder="Password" 
-          className="p-2 border rounded" 
-          required 
-          disabled={isLoading}
-        />
-        <button 
-          type="submit" 
-          className="mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={isLoading}
-        >
-          {isLoading ? 'Logging in...' : 'Login'}
-        </button>
-      </form>
-      {toast && <Toast message={toast} onClose={() => setToast(null)} />}
+    <div className="login-container">
+      <div className="login-card">
+        <form onSubmit={handleSubmit} className="login-form">
+          <h2 className="login-title">Admin Access</h2>
+          
+          {error && <div className="error-message">{error}</div>}
+          
+          <div className="input-group">
+            <label htmlFor="email" className="input-label">Email Address</label>
+            <input 
+              id="email"
+              name="email" 
+              type="email" 
+              value={form.email} 
+              onChange={handleChange} 
+              placeholder="Enter admin email" 
+              className="form-input"
+              required 
+              disabled={isLoading}
+            />
+          </div>
+          
+          <div className="input-group">
+            <label htmlFor="password" className="input-label">Password</label>
+            <input 
+              id="password"
+              name="password" 
+              type="password" 
+              value={form.password} 
+              onChange={handleChange} 
+              placeholder="Enter password" 
+              className="form-input"
+              required 
+              disabled={isLoading}
+            />
+          </div>
+          
+          <button 
+            type="submit" 
+            className="login-button"
+            disabled={isLoading}
+          >
+            {isLoading && <span className="loading-spinner"></span>}
+            {isLoading ? 'Authenticating...' : 'Access Dashboard'}
+          </button>
+        </form>
+      </div>
     </div>
   );
 };
