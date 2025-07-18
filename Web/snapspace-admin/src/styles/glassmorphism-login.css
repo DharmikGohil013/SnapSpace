@@ -108,9 +108,25 @@ body {
   font-weight: 600;
   text-align: center;
   margin-bottom: 2rem;
-  color: #1f2937;
+  color: #ffffff;
   letter-spacing: -0.025em;
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Input Group Styling */
+.input-group {
+  margin-bottom: 1.5rem;
+}
+
+/* Input Label Styling */
+.input-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.025em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 /* Status Indicator */
@@ -150,14 +166,14 @@ body {
   width: 100%;
   padding: 1rem 1.25rem;
   font-size: 1rem;
-  font-weight: 400;
-  color: #374151;
+  font-weight: 500;
+  color: #1f2937;
   
   /* Glassmorphism input */
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(10px);
   
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.4);
   border-radius: 16px;
   
   outline: none;
@@ -165,10 +181,13 @@ body {
   
   /* Text styling */
   letter-spacing: 0.025em;
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 .form-input::placeholder {
-  color: #9ca3af;
+  color: #6b7280;
   font-weight: 400;
 }
 
@@ -194,10 +213,10 @@ body {
   padding: 1rem 1.5rem;
   font-size: 1rem;
   font-weight: 600;
-  color: #1f2937;
+  color: #ffffff;
   
   /* Glassmorphism button */
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.3);
   backdrop-filter: blur(15px);
   
   border: 2px solid rgba(255, 255, 255, 0.4);

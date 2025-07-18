@@ -3,7 +3,26 @@
 const mongoose = require('mongoose');
 const { TILE_CATEGORIES } = require('../config/constants');
 
+// Function to generate unique 5-character alphanumeric ID
+const generateTileId = () => {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let result = '';
+  for (let i = 0; i < 5; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+};
+
 const tileSchema = new mongoose.Schema({
+  tileId: {
+    type: String,
+    unique: true,
+    default: generateTileId,
+    required: true,
+    uppercase: true,
+    maxlength: 5,
+    minlength: 5,
+  },
   name: {
     type: String,
     required: [true, 'Tile name is required'],
@@ -59,6 +78,33 @@ const tileSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Admin',
   },
+});
+
+// Pre-save middleware to ensure unique tileId
+tileSchema.pre('save', async function(next) {
+  if (this.isNew || this.isModified('tileId')) {
+    let isUnique = false;
+    let attempts = 0;
+    const maxAttempts = 10;
+    
+    while (!isUnique && attempts < maxAttempts) {
+      try {
+        this.tileId = generateTileId();
+        const existingTile = await mongoose.model('Tile').findOne({ tileId: this.tileId });
+        if (!existingTile) {
+          isUnique = true;
+        }
+        attempts++;
+      } catch (error) {
+        return next(error);
+      }
+    }
+    
+    if (!isUnique) {
+      return next(new Error('Could not generate unique tile ID after multiple attempts'));
+    }
+  }
+  next();
 });
 
 module.exports = mongoose.model('Tile', tileSchema);

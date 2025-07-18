@@ -66,12 +66,24 @@ const Login = () => {
     try {
       console.log('Starting login process...');
       
-      // Use the environment-aware API configuration
-      const data = await authApi.adminLogin({
-        email: form.email,
-        password: form.password
+      // Use direct fetch with proxy-enabled endpoint
+      const response = await fetch('/api/auth/admin/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: form.email,
+          password: form.password
+        })
       });
 
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Server error: ${response.status}`);
+      }
+
+      const data = await response.json();
       console.log('Login successful, received data:', data);
 
       // Store token in localStorage with the correct key

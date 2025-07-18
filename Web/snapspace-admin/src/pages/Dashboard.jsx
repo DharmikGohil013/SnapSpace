@@ -89,11 +89,15 @@ const Dashboard = () => {
               gap: '16px',
               marginTop: '8px'
             }}>
-              <div className="form-input" style={{ 
-                textAlign: 'center',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease'
-              }}>
+              <div 
+                className="form-input" 
+                onClick={() => navigate('/admin/users')}
+                style={{ 
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+              >
                 👥 User Management
               </div>
               <div className="form-input" style={{ 

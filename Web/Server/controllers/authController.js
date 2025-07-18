@@ -100,3 +100,52 @@ exports.verifyOtpAndRegister = async (req, res) => {
 
   res.status(201).json({ success: true, token, user: { id: user._id, name, email } });
 };
+
+// ...existing code...
+
+// Admin: delete user
+exports.deleteUser = async (req, res) => {
+  try {
+    const user = await User.findByIdAndDelete(req.params.id);
+    if (!user) {
+      return res.status(404).json({ 
+        success: false, 
+        message: MESSAGES.NOT_FOUND || 'User not found' 
+      });
+    }
+    res.json({ 
+      success: true, 
+      message: 'User deleted successfully' 
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error deleting user',
+      error: error.message 
+    });
+  }
+};
+
+// ...existing code...
+
+
+// ...existing code...
+
+// Admin: get all tiles
+exports.getAllTiles = async (req, res) => {
+  try {
+    const tiles = await Tile.find().populate('createdBy', 'name email');
+    res.json({ 
+      success: true, 
+      tiles 
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error fetching tiles',
+      error: error.message 
+    });
+  }
+};
+
+// ...existing code...
