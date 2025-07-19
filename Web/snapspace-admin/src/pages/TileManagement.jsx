@@ -19,6 +19,7 @@ const TileManagement = () => {
     description: '',
     category: '',
     price: '',
+    company: '',
     stock: '',
     unit: 'pieces',
     length: '',
@@ -30,7 +31,11 @@ const TileManagement = () => {
     usage: [],
     isFeatured: false,
     imageUrl: '',
-    textureUrl: ''
+    textureUrl: '',
+    likes: {
+      count: 0,
+      likedBy: []
+    }
   });
 
   const categories = ['ceramic', 'porcelain', 'natural stone', 'mosaic', 'glass', 'metal'];
@@ -53,6 +58,7 @@ const TileManagement = () => {
       description: '',
       category: '',
       price: '',
+      company: '',
       stock: '',
       unit: 'pieces',
       length: '',
@@ -64,7 +70,11 @@ const TileManagement = () => {
       usage: [],
       isFeatured: false,
       imageUrl: '',
-      textureUrl: ''
+      textureUrl: '',
+      likes: {
+        count: 0,
+        likedBy: []
+      }
     });
   };
 
@@ -207,6 +217,7 @@ const TileManagement = () => {
         description: form.description.trim(),
         category: form.category,
         price: parseFloat(form.price),
+        company: form.company.trim() || 'SnapSpace Premium Tiles Pvt Ltd',
         inventory: {
           stock: parseInt(form.stock),
           unit: form.unit
@@ -224,7 +235,11 @@ const TileManagement = () => {
         usage: form.usage,
         isFeatured: form.isFeatured,
         imageUrl: form.imageUrl.trim(),
-        textureUrl: form.textureUrl.trim()
+        textureUrl: form.textureUrl.trim(),
+        likes: {
+          count: form.likes?.count || 0,
+          likedBy: form.likes?.likedBy || []
+        }
       };
 
       console.log('Creating tile with data:', tileData);
@@ -301,6 +316,7 @@ const TileManagement = () => {
         description: form.description.trim(),
         category: form.category,
         price: parseFloat(form.price),
+        company: form.company.trim() || 'SnapSpace Premium Tiles Pvt Ltd',
         inventory: {
           stock: parseInt(form.stock),
           unit: form.unit
@@ -318,7 +334,11 @@ const TileManagement = () => {
         usage: form.usage,
         isFeatured: form.isFeatured,
         imageUrl: form.imageUrl.trim(),
-        textureUrl: form.textureUrl.trim()
+        textureUrl: form.textureUrl.trim(),
+        likes: {
+          count: form.likes?.count || editingTile.likes?.count || 0,
+          likedBy: form.likes?.likedBy || editingTile.likes?.likedBy || []
+        }
       };
 
       console.log('Updating tile with data:', tileData);
@@ -443,6 +463,7 @@ const TileManagement = () => {
       description: tile.description || '',
       category: tile.category || '',
       price: tile.price || '',
+      company: tile.company || 'SnapSpace Premium Tiles Pvt Ltd',
       stock: tile.inventory?.stock || '',
       unit: tile.inventory?.unit || 'pieces',
       length: tile.specifications?.size?.length || '',
@@ -454,7 +475,11 @@ const TileManagement = () => {
       usage: tile.usage || [],
       isFeatured: tile.isFeatured || false,
       imageUrl: tile.imageUrl || '',
-      textureUrl: tile.textureUrl || ''
+      textureUrl: tile.textureUrl || '',
+      likes: {
+        count: tile.likes?.count || 0,
+        likedBy: tile.likes?.likedBy || []
+      }
     });
     setShowEditForm(true);
     setShowCreateForm(false);
@@ -651,6 +676,19 @@ const TileManagement = () => {
                         placeholder="Enter tile name"
                         className="form-input"
                         required
+                        disabled={isLoading}
+                      />
+                    </div>
+
+                    <div className="input-group">
+                      <label className="input-label">Company Name</label>
+                      <input
+                        type="text"
+                        name="company"
+                        value={form.company}
+                        onChange={handleChange}
+                        placeholder="SnapSpace Premium Tiles Pvt Ltd"
+                        className="form-input"
                         disabled={isLoading}
                       />
                     </div>
@@ -880,6 +918,29 @@ const TileManagement = () => {
                     </div>
 
                     <div className="input-group">
+                      <label className="input-label">Likes Count</label>
+                      <input
+                        type="number"
+                        name="likesCount"
+                        value={form.likes?.count || 0}
+                        onChange={(e) => {
+                          const count = parseInt(e.target.value) || 0;
+                          setForm(prev => ({
+                            ...prev,
+                            likes: {
+                              ...prev.likes,
+                              count: count
+                            }
+                          }));
+                        }}
+                        placeholder="0"
+                        className="form-input"
+                        min="0"
+                        disabled={isLoading}
+                      />
+                    </div>
+
+                    <div className="input-group">
                       <label className="input-label" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <input
                           type="checkbox"
@@ -1005,10 +1066,50 @@ const TileManagement = () => {
                               </span>
                             )}
                           </div>
+
+                          {tile.company && (
+                            <div style={{ 
+                              marginBottom: '8px', 
+                              color: 'rgba(255, 255, 255, 0.9)', 
+                              fontSize: '12px',
+                              fontWeight: '600',
+                              backgroundColor: 'rgba(76, 175, 80, 0.2)',
+                              padding: '4px 8px',
+                              borderRadius: '6px',
+                              display: 'inline-block'
+                            }}>
+                              🏢 {tile.company}
+                            </div>
+                          )}
                           
                           <p style={{ margin: '0 0 8px 0', color: 'rgba(255, 255, 255, 0.8)', fontSize: '13px', lineHeight: '1.3' }}>
                             {tile.description}
                           </p>
+
+                          {/* Likes Section */}
+                          <div style={{
+                            backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                            borderRadius: '8px',
+                            padding: '8px',
+                            marginBottom: '12px',
+                            border: '1px solid rgba(244, 67, 54, 0.3)'
+                          }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                              <span style={{ color: '#f44336', fontSize: '12px', fontWeight: '600' }}>
+                                ❤️ {tile.likes?.count || 0} Likes
+                              </span>
+                              <span style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '10px' }}>
+                                {tile.likes?.likedBy?.length || 0} users
+                              </span>
+                            </div>
+                            {tile.likes?.likedBy && tile.likes.likedBy.length > 0 && (
+                              <div style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.7)' }}>
+                                Recent: {tile.likes.likedBy.slice(-2).map(like => 
+                                  `${like.userId}`
+                                ).join(', ')}
+                              </div>
+                            )}
+                          </div>
                           
                           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontSize: '12px', marginBottom: '12px' }}>
                             <div><strong>Price:</strong> ${tile.price}</div>
