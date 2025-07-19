@@ -7,6 +7,7 @@ import AddTile from './pages/AddTile';
 import UserManagement from './pages/UserManagement';
 import TileManagement from './pages/TileManagement';
 import Settings from './pages/Settings';
+import Analytics from './pages/Analytics';
 import CorsTestComponent from './components/CorsTestComponent';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -20,6 +21,7 @@ function App() {
       <Route path="/admin/users" element={<UserManagement />} />
       <Route path="/admin/tiles" element={<TileManagement />} />
       <Route path="/admin/settings" element={<Settings />} />
+      <Route path="/admin/analytics" element={<Analytics />} />
       <Route element={<ProtectedRoute />}>
         <Route path="/tiles" element={<Tiles />} />
         <Route path="/tiles/new" element={<AddTile />} />

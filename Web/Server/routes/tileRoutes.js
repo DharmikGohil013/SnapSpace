@@ -9,14 +9,15 @@ const {
 } = require('../controllers/tileController');
 
 const { protect } = require('../middlewares/auth');
+const { logTileView, logCustomInteraction } = require('../middlewares/analyticsLogger');
 
-// Public route to get all tiles
-router.get('/', getAllTiles);
+// Public route to get all tiles (with optional analytics logging for authenticated users)
+router.get('/', logCustomInteraction, getAllTiles);
 
-// Get specific tile by ID
-router.get('/:id', getTileById);
+// Get specific tile by ID (with view logging for authenticated users)
+router.get('/:id', logCustomInteraction, logTileView, getTileById);
 
 // Optional: search by name/category/usage
-router.get('/search/query', searchTiles);
+router.get('/search/query', logCustomInteraction, searchTiles);
 
 module.exports = router;

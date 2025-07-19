@@ -14,6 +14,7 @@ public class AuthManager : MonoBehaviour
         public string email;
         public string password;
     }
+
     [System.Serializable]
     public class VerifyOtpRequest
     {
@@ -22,6 +23,7 @@ public class AuthManager : MonoBehaviour
         public string password;
         public string otp;
     }
+
     [System.Serializable]
     public class LoginResponse
     {
@@ -29,8 +31,7 @@ public class AuthManager : MonoBehaviour
         public string token;
     }
 
-
-    [Header("Panels")]
+    //[Header("Panels")]
     public GameObject signupPanel, otpPanel, loginPanel, forgetPanel;
 
     [Header("Signup Fields")]
@@ -44,6 +45,9 @@ public class AuthManager : MonoBehaviour
 
     [Header("Error Texts")]
     public TMP_Text errorTextSignup, errorTextOtp, errorTextLogin, errorTextForget;
+
+    [Header("Loading Indicator")]
+    public GameObject loadingIndicator;
 
     private string BASE_URL = "https://snapspace-ry3k.onrender.com/api";
     private string cachedSignupName, cachedSignupEmail, cachedSignupPassword;
@@ -90,7 +94,8 @@ public class AuthManager : MonoBehaviour
         AndroidJavaObject unityActivity = new AndroidJavaClass("com.unity3d.player.UnityPlayer")
             .GetStatic<AndroidJavaObject>("currentActivity");
         AndroidJavaObject javaString = new AndroidJavaObject("java.lang.String", msg);
-        toastClass.CallStatic("makeText", unityActivity, javaString, toastClass.GetStatic<int>("LENGTH_SHORT")).Call("show");
+        AndroidJavaObject toast = toastClass.CallStatic<AndroidJavaObject>("makeText", unityActivity, javaString, toastClass.GetStatic<int>("LENGTH_SHORT"));
+        toast.Call("show");
 #else
         Debug.Log("Toast: " + msg);
 #endif
@@ -110,6 +115,7 @@ public class AuthManager : MonoBehaviour
 
         StartCoroutine(RequestOtpCoroutine());
     }
+
     public void Logout()
     {
         PlayerPrefs.DeleteKey("snapspace_token");
@@ -119,6 +125,8 @@ public class AuthManager : MonoBehaviour
 
     IEnumerator RequestOtpCoroutine()
     {
+        ShowLoadingIndicator(true); // Show loading indicator before making request
+
         string url = BASE_URL + "/auth/user/request-otp";
 
         OtpRequestBody data = new OtpRequestBody
@@ -129,8 +137,6 @@ public class AuthManager : MonoBehaviour
         };
 
         string json = JsonUtility.ToJson(data);
-        Debug.Log("📦 JSON: " + json);
-
         UnityWebRequest req = new UnityWebRequest(url, "POST");
         byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(json);
         req.uploadHandler = new UploadHandlerRaw(bodyRaw);
@@ -139,7 +145,7 @@ public class AuthManager : MonoBehaviour
 
         yield return req.SendWebRequest();
 
-        Debug.Log("📥 Response Code: " + req.responseCode);
+        ShowLoadingIndicator(false); // Hide loading indicator after request finishes
 
         if (req.result == UnityWebRequest.Result.Success || (int)req.responseCode == 200)
         {
@@ -154,12 +160,8 @@ public class AuthManager : MonoBehaviour
         }
     }
 
-
-
     public void OnClickVerifyOtp()
     {
-        Debug.Log("👆 Verify OTP button clicked!");
-
         if (string.IsNullOrEmpty(signupOtp.text))
         {
             errorTextOtp.text = "Enter the OTP.";
@@ -169,10 +171,9 @@ public class AuthManager : MonoBehaviour
         StartCoroutine(VerifyOtpCoroutine());
     }
 
-
     IEnumerator VerifyOtpCoroutine()
     {
-        Debug.Log("🔄 Sending OTP verification to server...");
+        ShowLoadingIndicator(true); // Show loading indicator before making request
 
         string url = BASE_URL + "/auth/user/verify-otp";
 
@@ -185,8 +186,6 @@ public class AuthManager : MonoBehaviour
         };
 
         string json = JsonUtility.ToJson(data);
-        Debug.Log("📦 JSON (verify): " + json);
-
         UnityWebRequest req = new UnityWebRequest(url, "POST");
         byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(json);
         req.uploadHandler = new UploadHandlerRaw(bodyRaw);
@@ -195,7 +194,7 @@ public class AuthManager : MonoBehaviour
 
         yield return req.SendWebRequest();
 
-        Debug.Log("📥 Response Code (verify): " + req.responseCode);
+        ShowLoadingIndicator(false); // Hide loading indicator after request finishes
 
         if (req.result == UnityWebRequest.Result.Success || (int)req.responseCode == 200)
         {
@@ -210,7 +209,6 @@ public class AuthManager : MonoBehaviour
         }
     }
 
-
     public void OnClickLogin()
     {
         if (string.IsNullOrEmpty(loginEmail.text) || string.IsNullOrEmpty(loginPassword.text))
@@ -223,6 +221,8 @@ public class AuthManager : MonoBehaviour
 
     IEnumerator LoginCoroutine()
     {
+        ShowLoadingIndicator(true); // Show loading indicator before making request
+
         string url = BASE_URL + "/auth/user/login";
         var json = JsonUtility.ToJson(new
         {
@@ -238,9 +238,10 @@ public class AuthManager : MonoBehaviour
 
         yield return req.SendWebRequest();
 
+        ShowLoadingIndicator(false); // Hide loading indicator after request finishes
+
         if (req.result == UnityWebRequest.Result.Success)
         {
-            // Parse token from response
             string jsonResponse = req.downloadHandler.text;
             LoginResponse parsed = JsonUtility.FromJson<LoginResponse>(jsonResponse);
 
@@ -248,22 +249,46 @@ public class AuthManager : MonoBehaviour
             PlayerPrefs.Save();
 
             ShowToast("Login successful!");
+            ClearInputFields(); // Clear input fields after successful login
+
             yield return new WaitForSeconds(1f);
             SceneManager.LoadScene(1);
         }
-
-
         else
         {
             errorTextLogin.text = "Invalid email or password.";
         }
     }
+
+    void ClearInputFields()
+    {
+        signupName.text = "";
+        signupEmail.text = "";
+        signupPassword.text = "";
+        signupOtp.text = "";
+
+        loginEmail.text = "";
+        loginPassword.text = "";
+
+        forgetEmail.text = "";
+        forgetOtp.text = "";
+        forgetNewPassword.text = "";
+        forgetConfirmPassword.text = "";
+    }
+
     public void GoToLoginPanel()
     {
         ShowPanel(loginPanel);
     }
 
-
     public void GoToSignupPanel() => ShowPanel(signupPanel);
     public void GoToForgetPanel() => ShowPanel(forgetPanel);
+
+    void ShowLoadingIndicator(bool show)
+    {
+        if (loadingIndicator != null)
+        {
+            loadingIndicator.SetActive(show);
+        }
+    }
 }
