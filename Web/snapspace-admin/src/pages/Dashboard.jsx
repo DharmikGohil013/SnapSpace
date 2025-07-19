@@ -111,11 +111,23 @@ const Dashboard = () => {
               >
                 🎯 Tile Management
               </div>
-              <div className="form-input" style={{ 
-                textAlign: 'center',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease'
-              }}>
+              <div 
+                className="form-input" 
+                style={{ 
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+                onClick={() => navigate('/admin/analytics')}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+                  e.target.style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                  e.target.style.transform = 'translateY(0)';
+                }}
+              >
                 📊 Analytics
               </div>
               <div 

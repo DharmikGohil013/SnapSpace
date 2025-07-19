@@ -28,3 +28,13 @@ router.get('/top-performing', protect, isAdmin, getTopPerformingTiles);
 router.delete('/tiles/:tileId', protect, isAdmin, deleteAnalytics);
 
 module.exports = router;
+// Create this route in your analyticsRoutes.js for testing
+router.post('/seed-data', protect, isAdmin, async (req, res) => {
+  try {
+    const sampleData = [/* paste JSON array above */];
+    await TileAnalysis.insertMany(sampleData);
+    res.json({ success: true, message: 'Sample data created successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
