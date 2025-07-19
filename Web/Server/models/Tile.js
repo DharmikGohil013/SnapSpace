@@ -40,6 +40,11 @@ const tileSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  company: {
+    type: String,
+    required: [true, 'Company name is required'],
+    default: '',
+  },
   inventory: {
     stock: {
       type: Number,
@@ -67,6 +72,22 @@ const tileSchema = new mongoose.Schema({
   isFeatured: {
     type: Boolean,
     default: false,
+  },
+  likes: {
+    count: {
+      type: Number,
+      default: 0,
+    },
+    likedBy: [{
+      user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+      likedAt: {
+        type: Date,
+        default: Date.now,
+      }
+    }]
   },
   imageUrl: String,
   textureUrl: String,
@@ -103,6 +124,14 @@ tileSchema.pre('save', async function(next) {
     if (!isUnique) {
       return next(new Error('Could not generate unique tile ID after multiple attempts'));
     }
+  }
+  next();
+});
+
+// Pre-save middleware to update likes count
+tileSchema.pre('save', function(next) {
+  if (this.likes && this.likes.likedBy) {
+    this.likes.count = this.likes.likedBy.length;
   }
   next();
 });

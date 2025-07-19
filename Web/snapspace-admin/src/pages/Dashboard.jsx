@@ -100,11 +100,15 @@ const Dashboard = () => {
               >
                 👥 User Management
               </div>
-              <div className="form-input" style={{ 
-                textAlign: 'center',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease'
-              }}>
+              <div 
+                className="form-input" 
+                onClick={() => navigate('/admin/tiles')}
+                style={{ 
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+              >
                 🎯 Tile Management
               </div>
               <div className="form-input" style={{ 
@@ -114,11 +118,23 @@ const Dashboard = () => {
               }}>
                 📊 Analytics
               </div>
-              <div className="form-input" style={{ 
-                textAlign: 'center',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease'
-              }}>
+              <div 
+                className="form-input" 
+                style={{ 
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+                onClick={() => navigate('/admin/settings')}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+                  e.target.style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                  e.target.style.transform = 'translateY(0)';
+                }}
+              >
                 ⚙️ Settings
               </div>
             </div>
