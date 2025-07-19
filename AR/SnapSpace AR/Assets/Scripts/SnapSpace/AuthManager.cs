@@ -29,6 +29,7 @@ public class AuthManager : MonoBehaviour
     {
         public bool success;
         public string token;
+        public string name; // Add this line to match backend if it returns name
     }
 
     //[Header("Panels")]
@@ -52,16 +53,24 @@ public class AuthManager : MonoBehaviour
     private string BASE_URL = "https://snapspace-ry3k.onrender.com/api";
     private string cachedSignupName, cachedSignupEmail, cachedSignupPassword;
 
+    public static string UserToken { get; private set; }
+    public static string UserName => PlayerPrefs.GetString("snapspace_username", "User");
+
     void Start()
     {
+        Debug.Log("[AuthManager] Start called");
         string token = PlayerPrefs.GetString("snapspace_token", "");
+        Debug.Log($"[AuthManager] Loaded token: {token}");
+        UserToken = token;
         if (!string.IsNullOrEmpty(token))
         {
+            Debug.Log("[AuthManager] Token found, auto-logging in...");
             Debug.Log("🔐 Token found, auto-logging in...");
             SceneManager.LoadScene(1);
         }
         else
         {
+            Debug.Log("[AuthManager] No token found, showing signup panel");
             ShowPanel(signupPanel);
             ClearAllErrors();
         }
@@ -69,6 +78,7 @@ public class AuthManager : MonoBehaviour
 
     void ShowPanel(GameObject panelToShow)
     {
+        Debug.Log($"[AuthManager] ShowPanel called: {panelToShow.name}");
         signupPanel.SetActive(false);
         otpPanel.SetActive(false);
         loginPanel.SetActive(false);
@@ -81,6 +91,7 @@ public class AuthManager : MonoBehaviour
 
     void ClearAllErrors()
     {
+        Debug.Log("[AuthManager] ClearAllErrors called");
         errorTextSignup.text = "";
         errorTextOtp.text = "";
         errorTextLogin.text = "";
@@ -89,6 +100,7 @@ public class AuthManager : MonoBehaviour
 
     void ShowToast(string msg)
     {
+        Debug.Log($"[AuthManager] ShowToast: {msg}");
 #if UNITY_ANDROID && !UNITY_EDITOR
         AndroidJavaClass toastClass = new AndroidJavaClass("android.widget.Toast");
         AndroidJavaObject unityActivity = new AndroidJavaClass("com.unity3d.player.UnityPlayer")
@@ -103,9 +115,11 @@ public class AuthManager : MonoBehaviour
 
     public void OnClickRequestOtp()
     {
+        Debug.Log("[AuthManager] OnClickRequestOtp called");
         if (string.IsNullOrEmpty(signupName.text) || string.IsNullOrEmpty(signupEmail.text) || string.IsNullOrEmpty(signupPassword.text))
         {
             errorTextSignup.text = "All fields are required.";
+            Debug.LogWarning("[AuthManager] Signup fields missing");
             return;
         }
 
@@ -113,21 +127,28 @@ public class AuthManager : MonoBehaviour
         cachedSignupEmail = signupEmail.text;
         cachedSignupPassword = signupPassword.text;
 
+        Debug.Log($"[AuthManager] Cached signup: {cachedSignupName}, {cachedSignupEmail}");
+
         StartCoroutine(RequestOtpCoroutine());
     }
 
     public void Logout()
     {
+        Debug.Log("[AuthManager] Logout called");
         PlayerPrefs.DeleteKey("snapspace_token");
         PlayerPrefs.Save();
+        UserToken = null;
         SceneManager.LoadScene(0); // back to login/signup scene
     }
 
     IEnumerator RequestOtpCoroutine()
     {
+        Debug.Log("[AuthManager] RequestOtpCoroutine started");
         ShowLoadingIndicator(true); // Show loading indicator before making request
 
         string url = BASE_URL + "/auth/user/request-otp";
+
+        Debug.Log($"[AuthManager] Requesting OTP at: {url}");
 
         OtpRequestBody data = new OtpRequestBody
         {
@@ -137,6 +158,7 @@ public class AuthManager : MonoBehaviour
         };
 
         string json = JsonUtility.ToJson(data);
+        Debug.Log($"[AuthManager] OTP request JSON: {json}");
         UnityWebRequest req = new UnityWebRequest(url, "POST");
         byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(json);
         req.uploadHandler = new UploadHandlerRaw(bodyRaw);
@@ -149,11 +171,13 @@ public class AuthManager : MonoBehaviour
 
         if (req.result == UnityWebRequest.Result.Success || (int)req.responseCode == 200)
         {
+            Debug.Log("[AuthManager] OTP sent to email");
             ShowToast("OTP sent to email.");
             ShowPanel(otpPanel);
         }
         else
         {
+            Debug.LogWarning($"[AuthManager] Failed to send OTP: {req.error}");
             errorTextSignup.text = "Failed to send OTP. Try again.";
             Debug.LogWarning("❌ OTP request failed: " + req.error);
             Debug.LogError("📝 Server Response: " + req.downloadHandler.text);
@@ -162,9 +186,11 @@ public class AuthManager : MonoBehaviour
 
     public void OnClickVerifyOtp()
     {
+        Debug.Log("[AuthManager] OnClickVerifyOtp called");
         if (string.IsNullOrEmpty(signupOtp.text))
         {
             errorTextOtp.text = "Enter the OTP.";
+            Debug.LogWarning("[AuthManager] OTP field empty");
             return;
         }
 
@@ -173,9 +199,12 @@ public class AuthManager : MonoBehaviour
 
     IEnumerator VerifyOtpCoroutine()
     {
+        Debug.Log("[AuthManager] VerifyOtpCoroutine started");
         ShowLoadingIndicator(true); // Show loading indicator before making request
 
         string url = BASE_URL + "/auth/user/verify-otp";
+
+        Debug.Log($"[AuthManager] Verifying OTP at: {url}");
 
         var data = new VerifyOtpRequest
         {
@@ -186,6 +215,7 @@ public class AuthManager : MonoBehaviour
         };
 
         string json = JsonUtility.ToJson(data);
+        Debug.Log($"[AuthManager] Verify OTP JSON: {json}");
         UnityWebRequest req = new UnityWebRequest(url, "POST");
         byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(json);
         req.uploadHandler = new UploadHandlerRaw(bodyRaw);
@@ -198,11 +228,16 @@ public class AuthManager : MonoBehaviour
 
         if (req.result == UnityWebRequest.Result.Success || (int)req.responseCode == 200)
         {
+            Debug.Log("[AuthManager] Account created!");
             ShowToast("Account created!");
+            // Save the user name for profile page
+            PlayerPrefs.SetString("snapspace_username", cachedSignupName);
+            PlayerPrefs.Save();
             ShowPanel(loginPanel);
         }
         else
         {
+            Debug.LogWarning($"[AuthManager] Invalid or expired OTP: {req.error}");
             errorTextOtp.text = "Invalid or expired OTP.";
             Debug.LogWarning("❌ Verify OTP failed: " + req.error);
             Debug.LogError("📝 Server Response: " + req.downloadHandler.text);
@@ -211,9 +246,11 @@ public class AuthManager : MonoBehaviour
 
     public void OnClickLogin()
     {
+        Debug.Log("[AuthManager] OnClickLogin called");
         if (string.IsNullOrEmpty(loginEmail.text) || string.IsNullOrEmpty(loginPassword.text))
         {
             errorTextLogin.text = "Enter email and password.";
+            Debug.LogWarning("[AuthManager] Login fields missing");
             return;
         }
         StartCoroutine(LoginCoroutine());
@@ -221,14 +258,18 @@ public class AuthManager : MonoBehaviour
 
     IEnumerator LoginCoroutine()
     {
+        Debug.Log("[AuthManager] LoginCoroutine started");
         ShowLoadingIndicator(true); // Show loading indicator before making request
 
         string url = BASE_URL + "/auth/user/login";
+        Debug.Log($"[AuthManager] Login URL: {url}");
         var json = JsonUtility.ToJson(new
         {
             email = loginEmail.text,
             password = loginPassword.text
         });
+
+        Debug.Log($"[AuthManager] Login JSON: {json}");
 
         UnityWebRequest req = new UnityWebRequest(url, "POST");
         byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(json);
@@ -242,10 +283,15 @@ public class AuthManager : MonoBehaviour
 
         if (req.result == UnityWebRequest.Result.Success)
         {
+            Debug.Log("[AuthManager] Login success");
             string jsonResponse = req.downloadHandler.text;
+            Debug.Log($"[AuthManager] Login response: {jsonResponse}");
             LoginResponse parsed = JsonUtility.FromJson<LoginResponse>(jsonResponse);
 
             PlayerPrefs.SetString("snapspace_token", parsed.token);
+            UserToken = parsed.token;
+            // Save the real name if available, otherwise fallback to email
+            PlayerPrefs.SetString("snapspace_username", string.IsNullOrEmpty(parsed.name) ? loginEmail.text : parsed.name);
             PlayerPrefs.Save();
 
             ShowToast("Login successful!");
@@ -256,12 +302,14 @@ public class AuthManager : MonoBehaviour
         }
         else
         {
+            Debug.LogWarning($"[AuthManager] Login failed: {req.error}");
             errorTextLogin.text = "Invalid email or password.";
         }
     }
 
     void ClearInputFields()
     {
+        Debug.Log("[AuthManager] ClearInputFields called");
         signupName.text = "";
         signupEmail.text = "";
         signupPassword.text = "";
@@ -278,6 +326,7 @@ public class AuthManager : MonoBehaviour
 
     public void GoToLoginPanel()
     {
+        Debug.Log("[AuthManager] GoToLoginPanel called");
         ShowPanel(loginPanel);
     }
 
@@ -286,6 +335,7 @@ public class AuthManager : MonoBehaviour
 
     void ShowLoadingIndicator(bool show)
     {
+        Debug.Log($"[AuthManager] ShowLoadingIndicator: {show}");
         if (loadingIndicator != null)
         {
             loadingIndicator.SetActive(show);

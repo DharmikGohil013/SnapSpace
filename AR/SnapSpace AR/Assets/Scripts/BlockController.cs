@@ -24,25 +24,38 @@ public class BlockController : MonoBehaviour
 
     void Start()
     {
-        // Know More Logic
-        knowMore1Btn.onClick.AddListener(() => popup1.SetActive(true));
-        knowMore2Btn.onClick.AddListener(() => popup2.SetActive(true));
+        // Null checks for all public fields
+        if (knowMore1Btn == null) Debug.LogError("BlockController: knowMore1Btn is not assigned.");
+        if (knowMore2Btn == null) Debug.LogError("BlockController: knowMore2Btn is not assigned.");
+        if (popup1 == null) Debug.LogError("BlockController: popup1 is not assigned.");
+        if (popup2 == null) Debug.LogError("BlockController: popup2 is not assigned.");
+        if (closePopup1Btn == null) Debug.LogError("BlockController: closePopup1Btn is not assigned.");
+        if (closePopup2Btn == null) Debug.LogError("BlockController: closePopup2Btn is not assigned.");
+        if (arView1Btn == null) Debug.LogError("BlockController: arView1Btn is not assigned.");
+        if (arView2Btn == null) Debug.LogError("BlockController: arView2Btn is not assigned.");
 
-        // Close Popup
-        closePopup1Btn.onClick.AddListener(() => popup1.SetActive(false));
-        closePopup2Btn.onClick.AddListener(() => popup2.SetActive(false));
+        // Only add listeners if not null
+        if (knowMore1Btn != null && popup1 != null)
+            knowMore1Btn.onClick.AddListener(() => popup1.SetActive(true));
+        if (knowMore2Btn != null && popup2 != null)
+            knowMore2Btn.onClick.AddListener(() => popup2.SetActive(true));
 
-        // AR View Transfer
-        arView1Btn.onClick.AddListener(() =>
-        {
-            ImageTransfer.textureToTransfer = block1Image;
-            SceneManager.LoadScene(3);
-        });
+        if (closePopup1Btn != null && popup1 != null)
+            closePopup1Btn.onClick.AddListener(() => popup1.SetActive(false));
+        if (closePopup2Btn != null && popup2 != null)
+            closePopup2Btn.onClick.AddListener(() => popup2.SetActive(false));
 
-        arView2Btn.onClick.AddListener(() =>
-        {
-            ImageTransfer.textureToTransfer = block2Image;
-            SceneManager.LoadScene(3);
-        });
+        if (arView1Btn != null)
+            arView1Btn.onClick.AddListener(() =>
+            {
+                ImageTransfer.textureToTransfer = block1Image;
+                SceneManager.LoadScene(3);
+            });
+        if (arView2Btn != null)
+            arView2Btn.onClick.AddListener(() =>
+            {
+                ImageTransfer.textureToTransfer = block2Image;
+                SceneManager.LoadScene(3);
+            });
     }
 }

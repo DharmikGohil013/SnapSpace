@@ -9,7 +9,7 @@ public class AutoCarousel : MonoBehaviour
     public float scrollInterval = 2f; // 2 seconds
     private int currentIndex = 0;
     private float targetPos;
-    private bool isScrolling = false;
+    // Removed unused isScrolling field to resolve CS0414 warning
 
     void Start()
     {
@@ -37,7 +37,7 @@ public class AutoCarousel : MonoBehaviour
 
     IEnumerator SmoothScrollTo(float target)
     {
-        isScrolling = true;
+        // isScrolling removed
         float duration = 0.5f;
         float elapsed = 0f;
         float start = scrollRect.horizontalNormalizedPosition;
@@ -50,6 +50,6 @@ public class AutoCarousel : MonoBehaviour
         }
 
         scrollRect.horizontalNormalizedPosition = target;
-        isScrolling = false;
+        // isScrolling removed
     }
 }

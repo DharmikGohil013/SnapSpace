@@ -14,7 +14,7 @@ const { requestOtp, verifyOtpAndRegister } = require('../controllers/authControl
 
 // Admin-only routes
 router.post('/tiles', protect, isAdmin, createTile);
-router.get('/tiles', protect, isAdmin, getAllTiles); // Add this route
+router.get('/tiles', getAllTiles); // Public route, no token required
 router.put('/tiles/:id', protect, isAdmin, updateTile);
 router.delete('/tiles/:id', protect, isAdmin, deleteTile);
 router.get('/users', protect, isAdmin, getAllUsers);

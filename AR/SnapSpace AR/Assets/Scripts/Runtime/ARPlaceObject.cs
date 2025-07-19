@@ -66,3 +66,4 @@ namespace UnityEngine.XR.ARFoundation.Samples
         }
     }
 }
+
