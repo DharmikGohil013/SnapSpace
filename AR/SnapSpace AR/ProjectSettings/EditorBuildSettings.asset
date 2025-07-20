@@ -5,19 +5,23 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/SnapSpace/Index.unity
     guid: 13296ee249ef5b84197aac8f3c3e3f63
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/SnapSpace/Home Page.unity
     guid: de27b26f967906444b68e6f992c0dec3
-  - enabled: 1
+  - enabled: 0
     path: Assets/Plugins/SunShine Android Native Screen Recorder/Example/Single_home_1.unity
     guid: 90cfde83d142548169e5b7dd229fd9c7
-  - enabled: 1
+  - enabled: 0
     path: Assets/Plugins/SunShine Android Native Screen Recorder/Example/Single_home_1
       1.unity
     guid: 00b60a5fe81e14f47bdedb1b0529cc59
+  - enabled: 1
+    path: Assets/Plugins/SunShine Android Native Screen Recorder/Example/Example
+      Scene 1.unity
+    guid: f7ded5996d65cd5439de4a20b4bca701
   m_configObjects:
     Unity.XR.WindowsMR.Settings: {fileID: 11400000, guid: c52d3bb36b4c86f47af54ab9c7a02589,
       type: 2}
