@@ -8,6 +8,12 @@ using UnityEngine.SceneManagement;
 public class AuthManager : MonoBehaviour
 {
     [System.Serializable]
+    public class LoginRequest
+    {
+        public string email;
+        public string password;
+    }
+    [System.Serializable]
     public class OtpRequestBody
     {
         public string name;
@@ -218,17 +224,31 @@ public class AuthManager : MonoBehaviour
         }
         StartCoroutine(LoginCoroutine());
     }
-
     IEnumerator LoginCoroutine()
     {
         ShowLoadingIndicator(true); // Show loading indicator before making request
 
+        // Ensure the email and password are not empty
+        if (string.IsNullOrEmpty(loginEmail.text) || string.IsNullOrEmpty(loginPassword.text))
+        {
+            errorTextLogin.text = "Email and password cannot be empty!";
+            ShowLoadingIndicator(false); // Hide loading indicator if validation fails
+            yield break;
+        }
+
         string url = BASE_URL + "/auth/user/login";
-        var json = JsonUtility.ToJson(new
+
+
+        // Prepare the login data to send using a serializable class
+        LoginRequest loginData = new LoginRequest
         {
             email = loginEmail.text,
             password = loginPassword.text
-        });
+        };
+
+        // Log the data being sent to ensure it's correct
+        string json = JsonUtility.ToJson(loginData);
+        Debug.Log("Request Body: " + json);  // Log the request body
 
         UnityWebRequest req = new UnityWebRequest(url, "POST");
         byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(json);
@@ -236,29 +256,58 @@ public class AuthManager : MonoBehaviour
         req.downloadHandler = new DownloadHandlerBuffer();
         req.SetRequestHeader("Content-Type", "application/json");
 
-        yield return req.SendWebRequest();
+        yield return req.SendWebRequest();  // Send the web request and wait for the response
 
         ShowLoadingIndicator(false); // Hide loading indicator after request finishes
 
+        // Log the server response
+        Debug.Log("Server Response: " + req.downloadHandler.text);
+
+        // Handle response
         if (req.result == UnityWebRequest.Result.Success)
         {
             string jsonResponse = req.downloadHandler.text;
-            LoginResponse parsed = JsonUtility.FromJson<LoginResponse>(jsonResponse);
+            Debug.Log("Server Response: " + jsonResponse);  // Log the server response
 
-            PlayerPrefs.SetString("snapspace_token", parsed.token);
-            PlayerPrefs.Save();
+            bool loginSuccess = false;
+            try
+            {
+                // Parse the JSON response
+                LoginResponse parsed = JsonUtility.FromJson<LoginResponse>(jsonResponse);
 
-            ShowToast("Login successful!");
-            ClearInputFields(); // Clear input fields after successful login
+                if (parsed != null && parsed.success)
+                {
+                    PlayerPrefs.SetString("snapspace_token", parsed.token);
+                    PlayerPrefs.Save();
 
-            yield return new WaitForSeconds(1f);
-            SceneManager.LoadScene(1);
+                    ShowToast("Login successful!");
+                    ClearInputFields(); // Clear input fields after successful login
+                    loginSuccess = true;
+                }
+                else
+                {
+                    errorTextLogin.text = "Invalid email or password.";
+                    ShowToast("Failed to login: " + jsonResponse);
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError("Error parsing response: " + ex.Message);
+                errorTextLogin.text = "An error occurred while parsing the server response.";
+            }
+            if (loginSuccess)
+            {
+                yield return new WaitForSeconds(1f);
+                SceneManager.LoadScene(1); // Load the next scene after successful login
+            }
         }
         else
         {
-            errorTextLogin.text = "Invalid email or password.";
+            errorTextLogin.text = "Failed to login. Server error: " + req.error;
+            ShowToast("Login failed: " + req.error);
         }
     }
+
 
     void ClearInputFields()
     {
