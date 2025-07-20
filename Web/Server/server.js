@@ -14,6 +14,7 @@ const userRoutes = require('./routes/userRoutes');
 const tileRoutes = require('./routes/tileRoutes');
 const cartRoutes = require('./routes/cartRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
+const contactRoutes = require('./routes/contactRoutes');
 
 // Initialize app
 const app = express();
@@ -33,6 +34,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/tiles', tileRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/contact', contactRoutes);
 
 // Root health check
 app.get('/', (req, res) => {
