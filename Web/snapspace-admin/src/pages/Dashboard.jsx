@@ -51,7 +51,7 @@ const Dashboard = () => {
     <div className="login-container">
       <div className="login-card" style={{ maxWidth: '800px', minHeight: '600px' }}>
         <div className="login-form">
-          <h1 className="login-title">Welcome, Agent</h1>
+          <h1 className="login-title">Admin Dashboard</h1>
           
           <div className="input-group">
             <div className="input-label">Authentication Status</div>
