@@ -11,7 +11,7 @@ export const AuthProvider = ({ children }) => {
     if (stored) setToken(stored);
   }, []);
 
-  const login = (newToken) => {
+  const login = (newToken) => {4
     saveToken(newToken);
     setToken(newToken);
   };

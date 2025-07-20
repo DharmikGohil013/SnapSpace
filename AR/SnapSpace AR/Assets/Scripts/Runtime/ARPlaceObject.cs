@@ -7,7 +7,7 @@ namespace UnityEngine.XR.ARFoundation.Samples
 {
     /// <summary>
     /// Subscribes to an <see cref="ARRaycastHitEventAsset"/>. When the event is raised, the
-    /// <see cref="prefabToPlace"/> is instantiated at, or moved to, the hit position.
+    /// <see cref="prefabToPlace"/> is instantiated at, or moved to, the hi t position.
     /// The material of the placed object can be changed through buttons.
     /// </summary>
     public class ARPlaceObject : MonoBehaviour
